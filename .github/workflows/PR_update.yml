@@ -9,50 +9,28 @@ jobs:
   send_notification:
     runs-on: ubuntu-latest
     steps:
-      - name: Install msmtp-mta package
-        run: sudo apt-get update && sudo apt-get install -y msmtp-mta
-
-      - name: Configure msmtp
-        run: |
-          echo "account default" > ~/.msmtprc
-          echo "host outlook.office365.com" >> ~/.msmtprc  # Replace with your SMTP server address
-          echo "port 995" >> ~/.msmtprc  # Replace with your SMTP server port
-          echo "auth on" >> ~/.msmtprc
-          echo "user c.bhavya@sonata-software.com" >> ~/.msmtprc  # Replace with your SMTP username
-          echo "password ${{ secrets.SMTP_PASSWORD }}" >> ~/.msmtprc  # Store your SMTP password as a GitHub secret
-          echo "tls on" >> ~/.msmtprc
-          echo "tls_starttls on" >> ~/.msmtprc
+      - name: Install sendemail package
+        run: sudo apt-get update && sudo apt-get install -y sendemail
 
       - name: Check for PR updates
         id: check_updates
         run: |
-          # Create the previous_state.json file if it does not exist
-          if [[ ! -f previous_state.json ]]; then
-            echo "[]" > previous_state.json
-          fi
-
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                                 "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
 
-          # Get the previous state of closed pull requests
-          previous_state=$(cat previous_state.json)
+          # Get the previous state of closed pull requests (you need to implement this logic)
+          # For simplicity, assume we have a list called `previous_state` containing pull request details.
 
           # Compare the current and previous state to detect updates
           if [[ "$closed_pull_requests" != "$previous_state" ]]; then
             echo "Closed PR updated. Trigger email notification."
+            # Send the email using sendemail
+            echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." \
+            | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o port=995 -xu c.bhavya@sonata-software.com -xp Varshu@456
             echo "$closed_pull_requests" > previous_state.json
             exit 0
           fi
 
           echo "No updates to closed PRs."
           exit 1
-
-      - name: Send notification email
-        if: steps.check_updates.outcome == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RECIPIENT_EMAIL: c.bhavya@sonata-software.com
-        run: |
-          echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." | \
-            msmtp -a default -t ${{ env.RECIPIENT_EMAIL }}
