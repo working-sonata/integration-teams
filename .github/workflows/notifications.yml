@@ -1,7 +1,7 @@
 name: PR Update Notification
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - reopened
       - synchronize
