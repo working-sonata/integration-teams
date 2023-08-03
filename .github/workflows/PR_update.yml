@@ -1,21 +1,39 @@
 name: PR Update Notification
 
 on:
-  pull_request:
-    types:
-      - synchronize
+  push:
+    branches:
+      - main  # Replace with the branch name you want to monitor for updates
 
 jobs:
   send_notification:
     runs-on: ubuntu-latest
     steps:
+      - name: Check for PR updates
+        id: check_updates
+        run: |
+          # Fetch the list of closed pull requests
+          closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                                "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
+
+          # Get the previous state of closed pull requests (you need to implement this logic)
+          previous_state=$(cat previous_state.json)
+
+          # Compare the current and previous state to detect updates
+          if [[ "$closed_pull_requests" != "$previous_state" ]]; then
+            echo "Closed PR updated. Trigger email notification."
+            echo "$closed_pull_requests" > previous_state.json
+            exit 0
+          fi
+
+          echo "No updates to closed PRs."
+          exit 1
+
       - name: Send notification email
+        if: steps.check_updates.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RECIPIENT_EMAIL: c.bhavya@sonata-software.com
-          SMTP_SERVER: outlook.office365.com  # Replace with your POP server address
-          SMTP_PORT: 995  # Replace with your POP server port for SSL/TLS
-          SMTP_USERNAME: c.bhavya@sonata-software.com  # Replace with your POP username
-          SMTP_PASSWORD: ${{ secrets.POP_PASSWORD }}  # Store your POP password as a GitHub secret
         run: |
-          echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." | mail -S smtp="smtp://${{ env.SMTP_SERVER }}:${{ env.SMTP_PORT }}" -S smtp-auth=login -S smtp-auth-user="${{ env.SMTP_USERNAME }}" -S smtp-auth-password="${{ env.SMTP_PASSWORD }}" -S sendwait -v -r "from_address" ${{ env.RECIPIENT_EMAIL }}
+          echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." | \
+            mail -s "GitHub PR Update Notification" ${{ env.RECIPIENT_EMAIL }}
