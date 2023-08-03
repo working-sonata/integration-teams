@@ -34,7 +34,7 @@ jobs:
             echo "Closed PR updated. Trigger email notification."
             # Send the email using sendemail with TLS
             echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." \
-            | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
+            | sendemail -f c.bhavya@sonata-software.com -t joslin.iyda@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             echo "$closed_pull_requests" > previous_state.json
             exit 0
           fi
