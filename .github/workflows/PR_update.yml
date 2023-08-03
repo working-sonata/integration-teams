@@ -1,9 +1,9 @@
 name: PR Update Notification
 
 on:
-  push:
-    branches:
-      - main  # Replace with the branch name you want to monitor for updates
+  pull_request:
+    types:
+      - synchronize
 
 jobs:
   send_notification:
