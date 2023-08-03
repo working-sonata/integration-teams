@@ -19,7 +19,7 @@ jobs:
         id: check_updates
         run: |
           # Fetch the list of closed pull requests
-          closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
 
           # Get the previous state of closed pull requests (you need to implement this logic)
@@ -34,6 +34,8 @@ jobs:
             echo "$closed_pull_requests" > previous_state.json
             exit 0
           fi
-
           echo "No updates to closed PRs."
           exit 1
+
+      - name: Save the previous state for the next run
+        run: echo "$closed_pull_requests" > previous_state.json
