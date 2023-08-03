@@ -12,6 +12,17 @@ jobs:
       - name: Install msmtp-mta package
         run: sudo apt-get update && sudo apt-get install -y msmtp-mta
 
+      - name: Configure msmtp
+        run: |
+          echo "account default" > ~/.msmtprc
+          echo "host outlook.office365.com" >> ~/.msmtprc  # Replace with your SMTP server address
+          echo "port 995" >> ~/.msmtprc  # Replace with your SMTP server port
+          echo "auth on" >> ~/.msmtprc
+          echo "user c.bhavya@sonata-software.com" >> ~/.msmtprc  # Replace with your SMTP username
+          echo "password ${{ secrets.SMTP_PASSWORD }}" >> ~/.msmtprc  # Store your SMTP password as a GitHub secret
+          echo "tls on" >> ~/.msmtprc
+          echo "tls_starttls on" >> ~/.msmtprc
+
       - name: Check for PR updates
         id: check_updates
         run: |
