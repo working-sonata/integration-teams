@@ -12,11 +12,16 @@ jobs:
       - name: Check for PR updates
         id: check_updates
         run: |
+          # Create the previous_state.json file if it does not exist
+          if [[ ! -f previous_state.json ]]; then
+            echo "[]" > previous_state.json
+          fi
+
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                                 "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
 
-          # Get the previous state of closed pull requests (you need to implement this logic)
+          # Get the previous state of closed pull requests
           previous_state=$(cat previous_state.json)
 
           # Compare the current and previous state to detect updates
