@@ -10,13 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send notification email
-        uses: actions/github-script@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RECIPIENT_EMAIL: c.bhavya@sonata-software.com
-        with:
-          script: |
-            const EMAIL_CONTENT = "A closed Pull Request was updated. Check your GitHub repository for details.";
-            const EMAIL_SUBJECT = "GitHub PR Update Notification";
-            const MAIL_COMMAND = `echo "${EMAIL_CONTENT}" | mail -s "${EMAIL_SUBJECT}" ${{ env.RECIPIENT_EMAIL }}`;
-            require('child_process').execSync(MAIL_COMMAND);
+          SMTP_SERVER: outlook.office365.com  # Replace with your POP server address
+          SMTP_PORT: 995  # Replace with your POP server port for SSL/TLS
+          SMTP_USERNAME: c.bhavya@sonata-software.com  # Replace with your POP username
+          SMTP_PASSWORD: ${{ secrets.POP_PASSWORD }}  # Store your POP password as a GitHub secret
+        run: |
+          echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." | mail -S smtp="smtp://${{ env.SMTP_SERVER }}:${{ env.SMTP_PORT }}" -S smtp-auth=login -S smtp-auth-user="${{ env.SMTP_USERNAME }}" -S smtp-auth-password="${{ env.SMTP_PASSWORD }}" -S sendwait -v -r "from_address" ${{ env.RECIPIENT_EMAIL }}
