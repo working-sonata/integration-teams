@@ -21,7 +21,7 @@ jobs:
     - name: Send notification email
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        RECIPIENT_EMAIL: c.bhavya@sonata-software.com
+        RECIPIENT_EMAIL: joslin.iyda@sonata-software.com
       run: |
         # Install sendmail if not already available
         sudo apt-get update
