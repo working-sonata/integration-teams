@@ -33,4 +33,3 @@ jobs:
 
         # Send the email using sendmail
         echo "$EMAIL_CONTENT" | sendmail -v $RECIPIENT_EMAIL -s "$EMAIL_SUBJECT"
-
