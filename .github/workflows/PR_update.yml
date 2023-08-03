@@ -9,6 +9,9 @@ jobs:
   send_notification:
     runs-on: ubuntu-latest
     steps:
+      - name: Install msmtp-mta package
+        run: sudo apt-get update && sudo apt-get install -y msmtp-mta
+
       - name: Check for PR updates
         id: check_updates
         run: |
@@ -41,4 +44,4 @@ jobs:
           RECIPIENT_EMAIL: c.bhavya@sonata-software.com
         run: |
           echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." | \
-            mail -s "GitHub PR Update Notification" ${{ env.RECIPIENT_EMAIL }}
+            msmtp -a default -t ${{ env.RECIPIENT_EMAIL }}
