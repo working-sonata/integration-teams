@@ -9,6 +9,9 @@ jobs:
   send_notification:
     runs-on: ubuntu-latest
     steps:
+      - name: Install required libraries for TLS support
+        run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
+
       - name: Install sendemail package
         run: sudo apt-get update && sudo apt-get install -y sendemail
 
@@ -34,3 +37,4 @@ jobs:
 
           echo "No updates to closed PRs."
           exit 1
+
