@@ -1,7 +1,10 @@
 name: PR Update Notification
 
 on:
+  push:
   pull_request:
+    branches:
+      - main
     types:
       - synchronize
 
