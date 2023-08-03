@@ -3,8 +3,8 @@ name: PR Update Notification
 on:
   pull_request:
     types:
-      - reopened
       - synchronize
+
 jobs:
   send_notification:
     runs-on: ubuntu-latest
