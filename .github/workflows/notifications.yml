@@ -1,0 +1,36 @@
+name: PR Update Notification
+
+on:
+  pull_request:
+    types:
+      - reopened
+      - synchronize
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Send notification email
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RECIPIENT_EMAIL: c.bhavya@sonata-software.com
+      run: |
+        # Install sendmail if not already available
+        sudo apt-get update
+        sudo apt-get install -y sendmail
+
+        # Define the email content and subject
+        EMAIL_CONTENT="A closed Pull Request was updated. Check your GitHub repository for details."
+        EMAIL_SUBJECT="GitHub PR Update Notification"
+
+        # Send the email using sendmail
+        echo "$EMAIL_CONTENT" | sendmail -v $RECIPIENT_EMAIL -s "$EMAIL_SUBJECT"
+
