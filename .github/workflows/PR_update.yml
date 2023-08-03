@@ -1,9 +1,9 @@
 name: PR Update Notification
 
 on:
-  push:
-    branches:
-      - main  # Replace with the branch name you want to monitor for updates
+  pull_request:
+    types:
+      - synchronize
 
 jobs:
   send_notification:
@@ -21,8 +21,10 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                                 "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
+
           # Get the previous state of closed pull requests (you need to implement this logic)
           # For simplicity, assume we have a list called `previous_state` containing pull request details.
+
           # Compare the current and previous state to detect updates
           if [[ "$closed_pull_requests" != "$previous_state" ]]; then
             echo "Closed PR updated. Trigger email notification."
@@ -32,5 +34,6 @@ jobs:
             echo "$closed_pull_requests" > previous_state.json
             exit 0
           fi
+
           echo "No updates to closed PRs."
           exit 1
