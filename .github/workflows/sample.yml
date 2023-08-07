@@ -19,3 +19,9 @@ jobs:
         run: |
           echo "Closed PR Updated!"
           # Add your custom commands or actions here.
+
+      - name: Debug PR Info
+        run: |
+          echo "Pull Request Number: ${{ github.event.pull_request.number }}"
+          echo "Pull Request Action: ${{ github.event_name }}"
+
