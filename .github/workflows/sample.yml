@@ -1,0 +1,21 @@
+name: PR Update Trigger
+on:
+  pull_request:
+    types:
+      - closed
+      - reopened
+      - synchronize
+
+jobs:
+  trigger_on_update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Run Your Script Here
+        # Add the commands or actions you want to run when a closed PR is updated.
+        # For example, you could run tests, lint code, or perform other actions.
+        run: |
+          echo "Closed PR Updated!"
+          # Add your custom commands or actions here.
