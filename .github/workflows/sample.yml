@@ -7,8 +7,6 @@ on:
   pull_request:
     types:
       - synchronize
-  release:
-    types:
       - update
 
 jobs:
