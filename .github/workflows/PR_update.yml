@@ -1,6 +1,11 @@
 name: Pull Request Checker
 
 on:
+  pull_request:
+    types:
+      - synchronize
+      - update
+    
   schedule:
     - cron: "0 0 * * *"  # Run the script daily at midnight
 
