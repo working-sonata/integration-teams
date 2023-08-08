@@ -26,7 +26,7 @@ jobs:
         run: |
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
-                                "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
+                                "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
           # Get the previous state of closed pull requests (you need to implement this logic)
           # For simplicity, assume we have a list called `previous_state` containing pull request details.
           # Compare the current and previous state to detect updates
