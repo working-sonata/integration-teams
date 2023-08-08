@@ -12,20 +12,20 @@ jobs:
       - name: Install required libraries for TLS support
         run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
 
+      - name: Debug GitHub Event
+        run: echo "GitHub event triggered: ${{ github.EVENT_NAME }}"
+
       - name: Install sendemail package
         run: sudo apt-get update && sudo apt-get install -y sendemail
 
       - name: Check for PR updates
         id: check_updates
         run: |
-          # Fetch the list of closed pull requests
+          # Debug API response
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-          # Get the previous state of closed pull requests (you need to implement this logic)
-          # For simplicity, assume we have a list called `previous_state` containing pull request details.
-          # Compare the current and previous state to detect updates
-          if [[ "$closed_pull_requests" != "$previous_state" ]]; then
-            echo "Closed PR updated. Trigger email notification."
+          echo "API Response: $closed_pull_requests"
+            
             # Send the email using sendemail with TLS
             echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
