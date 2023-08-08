@@ -1,49 +1,26 @@
-name: PR Update Notification
+name: Pull Request Checker
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types:
-      - synchronize
-  release:
-    types:
-      - update
+  schedule:
+    - cron: "0 0 * * *"  # Run the script daily at midnight
 
 jobs:
-  send_notification:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Install required libraries for TLS support
-        run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Install sendemail package
-        run: sudo apt-get update && sudo apt-get install -y sendemail
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
 
-      - name: Check for PR updates
-        id: check_updates
-        run: |
-          # Fetch the list of closed pull requests
-          closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
-                                "https://api.github.com/repos/cbhavya09/working-sonata/integration-teams/pulls?state=closed")
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
 
-          # Get the previous state of closed pull requests (you need to implement this logic)
-          # For simplicity, assume we have a list called `previous_state` containing pull request details.
-
-          # Compare the current and previous state to detect updates
-          if [[ "$closed_pull_requests" != "$previous_state" ]]; then
-            echo "Closed PR updated. Trigger email notification."
-            # Send the email using sendemail with TLS
-            echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." \
-            | sendemail -f c.bhavya@sonata-software.com -t /..../ -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
-            echo "$closed_pull_requests" > previous_state.json
-            exit 0
-          fi
-          echo "No updates to closed PRs."
-          exit 1
-
-      - name: Save the previous state for the next run
-        run: echo "$closed_pull_requests" > previous_state.json
-
-
+    - name: Run script
+      run: python sample.py
