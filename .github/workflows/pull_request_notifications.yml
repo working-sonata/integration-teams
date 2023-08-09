@@ -17,25 +17,15 @@ jobs:
       - name: Send notification
         uses: actions/github-script@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { payload, repo, issue } = context;
-            const action = payload.action;
+            const { issue, repository } = context.payload;
+            const action = context.payload.action;
 
             if (action === 'closed') {
               const notification = `
-                Pull Request #${issue.number} in ${repo.full_name} was closed.
+                Pull Request #${issue.number} in ${repository.full_name} was closed.
                 Title: ${issue.title}
                 URL: ${issue.html_url}
               `;
 
               console.log(notification);
-            } else if (action === 'reopened') {
-              const notification = `
-                Pull Request #${issue.number} in ${repo.full_name} was reopened.
-                Title: ${issue.title}
-                URL: ${issue.html_url}
-              `;
-
-              console.log(notification);
-            }
