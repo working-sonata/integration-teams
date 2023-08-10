@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Send Email Notification
-      uses: dawidd6/action-send-mail@v2
+      uses: cbhavya09/action-send-mail@v2
       with:
         server_address: ${{ secrets.SMTP_SERVER_ADDRESS }}
         server_port: ${{ secrets.SMTP_SERVER_PORT }}
