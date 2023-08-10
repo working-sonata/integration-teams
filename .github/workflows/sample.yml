@@ -1,6 +1,11 @@
-name: Email Notification
+name: Update PR Email Notification
 
-on: [push] # You can customize the events that trigger this workflow
+on: 
+  pull_request:
+    tags:
+      - reopened
+      - update
+      - synchronise
 
 jobs:
   send-email:
