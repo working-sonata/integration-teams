@@ -18,7 +18,7 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            const { issue, repository } = context.payload;
+            const { issue, repository } = context.https://dcf3-223-237-232-145.ngrok.io/webhook;
             const action = context.payload.action;
 
             if (action === 'closed') {
