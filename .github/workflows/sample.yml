@@ -1,54 +1,19 @@
-name: PR Update Notification
+name: Email Notification
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types:
-      - synchronize
-      - update
+on: [push] # You can customize the events that trigger this workflow
 
 jobs:
-  send_notification:
+  send-email:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Debug GitHub Event
-        run: echo "GitHub event triggered: ${{ github.event_name }}"
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Install required libraries for TLS support
-        run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
-
-      - name: Install sendemail package
-        run: sudo apt-get update && sudo apt-get install -y sendemail
-
-      - name: Check for PR updates
-        id: check_updates
+      - name: Trigger Email
         run: |
-          # Debug API response
-          closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
-                                "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-          echo "API Response: $closed_pull_requests"
-          
-      - name: Check for PR updates
-        id: check_updates
-        run: |
-          # Fetch the list of closed pull requests
-          closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
-                                "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-          # Get the previous state of closed pull requests (you need to implement this logic)
-          # For simplicity, assume we have a list called `previous_state` containing pull request details.
-          # Compare the current and previous state to detect updates
-          if [[ "$closed_pull_requests" != "$previous_state" ]]; then
-            echo "Closed PR updated. Trigger email notification."
-            
-            # Send the email using sendemail with TLS
-            echo "Subject: GitHub PR Update Notification\nA closed Pull Request was updated. Check your GitHub repository for details." \
-            | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
-            echo "$closed_pull_requests" > previous_state.json
-            exit 0
-          fi
-          echo "No updates to closed PRs."
-          exit 1
-      - name: Save the previous state for the next run
-        run: echo "$closed_pull_requests" > previous_state.json
+          EMAIL_API_URL="https://api.outlook.com/send-email" # Replace with your API endpoint
+          EMAIL_PAYLOAD="{\"to\": \"c.bhavya@sonatapsoftware.com\", \"subject\": \"GitHub Action Notification\", \"message\": \"Hello from GitHub Actions!\"}"
+
+          # Send the email payload using curl
+          curl -X POST -H "Content-Type: application/json" -d "$EMAIL_PAYLOAD" "$EMAIL_API_URL"
