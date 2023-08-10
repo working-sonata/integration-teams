@@ -19,7 +19,7 @@ jobs:
         with:
           script: |
             const { issue, repository } = context.https://dcf3-223-237-232-145.ngrok.io/webhook;
-            const action = context.payload.action;
+            const action = context.https://dcf3-223-237-232-145.ngrok.io/webhook.action;
 
             if (action === 'closed') {
               const notification = `
