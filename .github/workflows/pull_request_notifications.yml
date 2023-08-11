@@ -1,6 +1,9 @@
 name: Pull Request Notifications
 
 on:
+  schedule:
+    - cron: "*/5 * * * *"
+
   workflow_run:
     workflows:
       - "Check PR Updates"
