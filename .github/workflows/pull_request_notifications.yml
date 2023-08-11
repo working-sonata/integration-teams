@@ -35,7 +35,8 @@ jobs:
                 URL: ${issue.html_url}
               `;
               console.log(notification);
-              console.log("::set-output name=notification::" + notification);
+              const encodedNotification = Buffer.from(notification).toString('base64');
+              console.log("::set-output name=notification::" + encodedNotification);
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,7 +44,7 @@ jobs:
       - name: Send Email Notification
         if: steps.check_updates.outputs.notification != ''
         run: |
-          echo "${{ steps.check_updates.outputs.notification }}" | \
+          echo "${{ steps.check_updates.outputs.notification }}" | base64 --decode | \
           sendemail -f ${{ secrets.SENDER_EMAIL }} -t ${{ secrets.RECIPIENT_EMAIL }} \
           -s ${{ secrets.SMTP_SERVER_ADDRESS }} -o tls=yes -xu ${{ secrets.SMTP_USERNAME }} -xp ${{ secrets.SMTP_PASSWORD }} -m
 
