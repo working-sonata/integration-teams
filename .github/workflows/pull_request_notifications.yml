@@ -1,10 +1,11 @@
 name: Pull Request Notifications
 
 on:
-  pull_request:
+  workflow_run:
+    workflows:
+      - "Check PR Updates"
     types:
-      - closed
-      - reopened
+      - requested
 
 jobs:
   send_notification:
@@ -16,22 +17,28 @@ jobs:
 
       - name: Debug Event Payload
         run: echo "${{ toJson(github.event) }}"
-        
+
       - name: Execute GitHub Script
         id: check_updates
         uses: actions/github-script@v4
         with:
           script: |
-            const { pull_request, repository } = context.payload;
-            const action = context.payload.action;
-            if (action === 'closed') {
-              const notification = `
-                Pull Request #${pull_request.number} in ${repository.full_name} was closed.
-                Title: ${pull_request.title}
-                URL: ${pull_request.html_url}
-              `;
-              console.log(notification);
-              console.log("::set-output name=notification::" + notification);
+            const runPayload = context.payload.workflow_run;
+            if (runPayload.conclusion === 'success' && runPayload.workflow === 'Check PR Updates') {
+              const pullRequests = runPayload.pull_requests;
+              if (pullRequests.length > 0) {
+                const pullRequest = pullRequests[0];
+                const action = pullRequest.event;
+                if (action === 'closed') {
+                  const notification = `
+                    Pull Request #${pullRequest.number} in ${pullRequest.base.repo.full_name} was closed.
+                    Title: ${pullRequest.title}
+                    URL: ${pullRequest.html_url}
+                  `;
+                  console.log(notification);
+                  console.log("::set-output name=notification::" + notification);
+                }
+              }
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
