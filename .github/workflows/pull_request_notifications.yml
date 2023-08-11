@@ -6,6 +6,8 @@ on:
       - "Check PR Updates"
     types:
       - requested
+      - reopened
+      - syncronized
 
 jobs:
   send_notification:
