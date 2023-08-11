@@ -1,9 +1,6 @@
 name: Pull Request Notifications
 
 on:
-  pull_request:
-    branches:
-    - main
   workflow_run:
     workflows:
       - "Check PR Updates"
