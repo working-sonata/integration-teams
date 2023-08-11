@@ -28,6 +28,7 @@ jobs:
           script: |
             const { issue, repository } = context.payload;
             const action = context.payload.action;
+            console.log("Action:", action);
             if (action === 'closed') {
               const notification = `
                 Pull Request #${issue.number} in ${repository.full_name} was closed.
@@ -36,8 +37,10 @@ jobs:
               `;
               console.log(notification);
               const encodedNotification = Buffer.from(notification).toString('base64');
+              console.log("Encoded Notification:", encodedNotification);
               console.log("::set-output name=notification::" + encodedNotification);
             }
+  
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
