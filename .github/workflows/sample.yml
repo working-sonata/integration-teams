@@ -1,0 +1,27 @@
+name: Update PR Email Notification
+
+on: 
+  pull_request:
+    types:
+      - reopened
+      - synchronize
+      - opened
+      - closed
+      - edited
+
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger Email
+        run: |
+          EMAIL_API_URL="https://api.outlook.com/send-email" # Replace with your API endpoint
+          EMAIL_PAYLOAD="{\"to\": \"c.bhavya@sonatapsoftware.com\", \"subject\": \"GitHub Action Notification\", \"message\": \"Hello from GitHub Actions!\"}"
+
+          # Send the email payload using curl
+          curl -X POST -H "Content-Type: application/json" -d "$EMAIL_PAYLOAD" "$EMAIL_API_URL"

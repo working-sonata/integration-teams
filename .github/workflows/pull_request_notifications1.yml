@@ -1,0 +1,27 @@
+name: Email Notifications
+
+on:
+  pull_request:
+    types:
+      - edited
+      - closed
+      - reopened
+      - synchronize
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Send Email Notification
+      uses: cbhavya09/action-send-mail@v2
+      with:
+        server_address: ${{ secrets.SMTP_SERVER_ADDRESS }}
+        server_port: ${{ secrets.SMTP_SERVER_PORT }}
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: "Pull Request ${{{ github.event.action }}}: ${{ github.event.pull_request.title }}"
+        body: "Status: ${{ github.event.action }}\nTitle: ${{ github.event.pull_request.title }}\nDescription: ${{ github.event.pull_request.body }}\nURL: ${{ github.event.pull_request.html_url }}"
