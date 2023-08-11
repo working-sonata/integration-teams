@@ -1,13 +1,16 @@
 name: Pull Request Notifications
 
 on:
+  pull_request:
+    branches:
+    - main
   workflow_run:
     workflows:
       - "Check PR Updates"
     types:
       - requested
       - reopened
-      - syncronized
+      - synchronized
 
 jobs:
   send_notification:
@@ -44,10 +47,10 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Send Email Notification
         if: steps.check_updates.outputs.notification != ''
         run: |
           echo "${{ steps.check_updates.outputs.notification }}" | \
           sendemail -f ${{ secrets.SENDER_EMAIL }} -t ${{ secrets.RECIPIENT_EMAIL }} \
-          -s ${{ secrets.SMTP_SERVER_ADDRESS }} -o tls=yes -xu ${{ secrets.SMTP_USERNAME }} -xp ${{ secrets.SMTP_PASSWORD }} -m
+          -s ${{ secrets.SMTP_SERVER_ADDRESS }} -o tls=yes -xu ${{ secrets.SMTP_USERNAME }} -xp ${{ secrets.SMTP_PASSWORD }} -m "Subject: Pull Request Closed\n\n$(cat)"
