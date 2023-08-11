@@ -1,10 +1,6 @@
 name: Pull Request Notifications
 
-on:
-  push:
-    branches:
-      - main
-        
+on:     
   pull_request:
     types:
       - closed
