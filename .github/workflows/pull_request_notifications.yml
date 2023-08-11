@@ -22,22 +22,21 @@ jobs:
         run: echo "${{ toJson(github.event) }}"
 
       - name: Execute GitHub Script
+        id: check_updates
         uses: actions/github-script@v4
         with:
           script: |
             const { issue, repository } = context.payload;
             const action = context.payload.action;
-
             if (action === 'closed') {
               const notification = `
                 Pull Request #${issue.number} in ${repository.full_name} was closed.
                 Title: ${issue.title}
                 URL: ${issue.html_url}
               `;
-
               console.log(notification);
+              console.log("::set-output name=notification::" + notification);
             }
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
