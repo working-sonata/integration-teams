@@ -1,9 +1,9 @@
 name: Pull Request Notifications
 
 on:
-  pull_request:
+  issue_comment:
     types:
-      - closed
+      - edited
 
 jobs:
   send_notification:
@@ -13,30 +13,28 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Debug Event Payload
-        run: echo "${{ toJson(github.event) }}"
+      - name: Get Pull Request Number
+        id: pr_number
+        run: echo "::set-output name=pr_number::$(echo ${{ github.event.issue.pull_request.url }} | grep -oE '[0-9]+$')"
 
-      - name: Execute GitHub Script
-        id: check_updates
-        uses: actions/github-script@v4
-        with:
-          script: |
-            const pullRequest = context.payload.pull_request;
-            if (pullRequest.merged === false) {
-              const notification = `
-                Pull Request #${pullRequest.number} in ${pullRequest.base.repo.full_name} was closed.
-                Title: ${pullRequest.title}
-                URL: ${pullRequest.html_url}
-              `;
-              console.log(notification);
-              console.log("::set-output name=notification::" + notification);
-            }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Pull Request Details
+        id: pr_details
+        run: |
+          echo "::set-output name=pr_title::$(curl -s -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' ${{ github.event.issue.pull_request.url }} | jq -r '.title')"
+          echo "::set-output name=pr_repo::$(curl -s -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' ${{ github.event.issue.pull_request.url }} | jq -r '.base.repo.full_name')"
+          echo "::set-output name=pr_url::$(curl -s -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' ${{ github.event.issue.pull_request.url }} | jq -r '.html_url')"
+
+      - name: Debug Pull Request Details
+        run: |
+          echo "Pull Request Number: ${{ steps.pr_number.outputs.pr_number }}"
+          echo "Pull Request Title: ${{ steps.pr_details.outputs.pr_title }}"
+          echo "Pull Request Repo: ${{ steps.pr_details.outputs.pr_repo }}"
+          echo "Pull Request URL: ${{ steps.pr_details.outputs.pr_url }}"
 
       - name: Send Email Notification
-        if: steps.check_updates.outputs.notification != ''
         run: |
-          echo "${{ steps.check_updates.outputs.notification }}" | \
+          echo "Pull Request #${{ steps.pr_number.outputs.pr_number }} in ${{ steps.pr_details.outputs.pr_repo }} was reopened and comment was updated." \
+               "Title: ${{ steps.pr_details.outputs.pr_title }}" \
+               "URL: ${{ steps.pr_details.outputs.pr_url }}" | \
           sendemail -f ${{ secrets.SENDER_EMAIL }} -t ${{ secrets.RECIPIENT_EMAIL }} \
-          -s ${{ secrets.SMTP_SERVER_ADDRESS }} -o tls=yes -xu ${{ secrets.SMTP_USERNAME }} -xp ${{ secrets.SMTP_PASSWORD }} -m "Subject: Pull Request Closed\n\n$(cat)"
+          -s ${{ secrets.SMTP_SERVER_ADDRESS }} -o tls=yes -xu ${{ secrets.SMTP_USERNAME }} -xp ${{ secrets.SMTP_PASSWORD }} -m "Subject: Pull Request Reopened and Comment Updated\n\n$(cat)"
