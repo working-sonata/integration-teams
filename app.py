@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     payload = request.json
-    print('Received GitHub Webhook Payload:', https://a232-136-226-245-19.ngrok.io/payload)
+    print('Received GitHub Webhook Payload:', payload)
 
     # Check if the event is a pull request action
     if payload and 'pull_request' in payload:
@@ -29,10 +29,10 @@ def webhook():
 # Function to send email notifications
 def send_email_notification(subject, content):
     from_email = 'c.bhavya@sonata-software.com'  # Replace with your actual email
-    to_email = 'kcbhavya09@gmail.com'  # Replace with the recipient's email
+    to_email = 'c.bhavya@sonata-software.com'  # Replace with the recipient's email
 
-    pop_server = 'pop.gmail.com'  # Replace with your POP server address
-    pop_port = 995  # Use port 995 for POP3 over TLS
+    pop_server = 'smtp.office365.com'  # Replace with your POP server address
+    pop_port = 587  # Use port 995 for POP3 over TLS
     email_user = 'c.bhavya@sonata-software.com'  # Replace with your actual email
     email_password = 'Varshu@456'  # Replace with your email password
 
