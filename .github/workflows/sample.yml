@@ -37,7 +37,9 @@ jobs:
             pr_details=$(echo "$closed_pull_requests" | jq -r '.[] | "PR Number: \(.number), Title: \(.title)"' | tr '\n' ', ')
             
             # Send the email using sendemail with TLS
-            echo "Subject: GitHub PR Update Notification\nClosed Pull Requests were updated. Details: $pr_details" \
+            email_subject="GitHub PR Update Notification"
+            email_body="Closed Pull Requests were updated. Details: $pr_details"
+            echo -e "Subject: $email_subject\n\n$email_body" \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             
             echo "$closed_pull_requests" > previous_state.json
@@ -45,3 +47,4 @@ jobs:
           fi
           echo "No updates to closed PRs."
           exit 1
+
