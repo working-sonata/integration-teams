@@ -39,6 +39,9 @@ jobs:
             # Debug: Output the pr_details variable to check its content
             echo "DEBUG: pr_details=$pr_details"
 
+            # Output the content of the closed_pull_requests variable
+            echo "DEBUG: closed_pull_requests=$closed_pull_requests"
+
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
             email_body="Closed Pull Requests were updated. Details: $pr_details"
