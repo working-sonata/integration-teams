@@ -41,7 +41,7 @@ jobs:
               };
               
               // Replace 'YOUR_PAYLOAD_URL' with the actual URL you want to send data to
-              const payloadUrl = ' https://efce-136-226-245-14.ngrok.io/payload';
+              const payloadUrl = ' https://bb3b-136-226-245-14.ngrok.io/payload';
               
               // Send the payload data to the external service
               const response = await fetch(payloadUrl, {
