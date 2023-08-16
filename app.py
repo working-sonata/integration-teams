@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     payload = request.json
-    print('Received GitHub Webhook Payload:', payload)
+    print('Received GitHub Webhook Payload:', https://a232-136-226-245-19.ngrok.io/payload)
 
     # Check if the event is a pull request action
     if payload and 'pull_request' in payload:
