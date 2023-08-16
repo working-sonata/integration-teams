@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "*/15 * * * *"  # Run every 15 minutes
 
+  pull_request:
+    types:
+        - synchronize
+        - update
+
 jobs:
   send_notification:
     runs-on: ubuntu-latest
