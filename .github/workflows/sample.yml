@@ -35,7 +35,10 @@ jobs:
             
             # Extract pull request details
             pr_details=$(echo "$closed_pull_requests" | jq -r '.[] | "PR Number: \(.number), Title: \(.title)"' | tr '\n' ', ')
-            
+
+            # Debug: Output the pr_details variable to check its content
+            echo "DEBUG: pr_details=$pr_details"
+
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
             email_body="Closed Pull Requests were updated. Details: $pr_details"
