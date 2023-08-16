@@ -1,4 +1,4 @@
-name: Pull Request Notifications
+name: Closed Pull Request Notifications
 
 on:
   pull_request:
