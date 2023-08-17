@@ -2,7 +2,7 @@ name: PR Update Notification
 
 on:
   schedule:
-    - cron: "*/15 * * * *"  # Run every 15 minutes
+     - cron: "*/15 * * * *"  # Run every 15 minutes
 
   pull_request:
     types:
@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Set up Git
         uses: actions/checkout@v2
-        
+
       - name: Install required libraries for TLS support
         run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
 
@@ -28,29 +28,36 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-
+          
           # Read the previous state from the file
           previous_state=$(cat previous_state.json || echo "")
-          
+
           # Compare the current and previous state to detect updates
           if [[ "$closed_pull_requests" != "$previous_state" ]]; then
             echo "Closed PR updated. Trigger email notification."
             
-            # Extract pull request details
-            pr_details=$(echo "$closed_pull_requests" | jq -r '.[] | "PR Number: \(.number), Title: \(.title)"' | tr '\n' ', ')
-            
-            # Debug: Output the pr_details variable to check its content
-            echo "DEBUG: pr_details=$pr_details"
-            
+            # Extract pull request details using jq and construct pr_details
+            pr_details=""
+            for row in $(echo "$closed_pull_requests" | jq -r '.[] | @base64'); do
+              _jq() {
+                echo "${row}" | base64 --decode | jq -r "${1}"
+              }
+              pr_number=$(_jq '.number')
+              pr_title=$(_jq '.title')
+              pr_author=$(_jq '.user.login')
+              pr_url=$(_jq '.html_url')
+              pr_details+="PR Number: $pr_number, Title: $pr_title, Author: $pr_author, URL: $pr_url\n"
+            done
+
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
-            email_body="Closed Pull Requests were updated. Details: $pr_details"
+            email_body="Closed Pull Requests were updated. Details:\n$pr_details"
             echo -e "Subject: $email_subject\n\n$email_body" \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             
+            # Save the current closed_pull_requests in previous_state.json
             echo "$closed_pull_requests" > previous_state.json
           else
             echo "No updates to closed PRs."
             exit 1
           fi
-          
