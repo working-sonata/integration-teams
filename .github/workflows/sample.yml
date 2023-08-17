@@ -36,14 +36,21 @@ jobs:
             echo "Closed PR updated. Trigger email notification."
             
             # Extract pull request details
-            pr_details=$(echo "$closed_pull_requests" | jq -r '.[] | "PR Number: \(.number), Title: \(.title)"' | tr '\n' ', ')
-            
-            # Debug: Output the pr_details variable to check its content
-            echo "DEBUG: pr_details=$pr_details"
+            pr_details=""
+            for row in $(echo "$closed_pull_requests" | jq -r '.[] | @base64'); do
+              _jq() {
+                echo "${row}" | base64 --decode | jq -r "${1}"
+              }
+              pr_number=$(_jq '.number')
+              pr_title=$(_jq '.title')
+              pr_author=$(_jq '.user.login')
+              pr_url=$(_jq '.html_url')
+              pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\n"
+            done
             
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
-            email_body="Closed Pull Requests were updated. Details: $pr_details"
+            email_body="Closed Pull Requests were updated. Details:\n$pr_details"
             echo -e "Subject: $email_subject\n\n$email_body" \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             
@@ -52,4 +59,3 @@ jobs:
             echo "No updates to closed PRs."
             exit 1
           fi
-          
