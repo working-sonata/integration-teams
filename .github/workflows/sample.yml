@@ -51,7 +51,7 @@ jobs:
             
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
-            email_body="Closed Pull Requests were updated. Details:\n$pr_details"
+            email_body="Closed Pull Requests were Updated. Details:\n$pr_details"
             echo -e "Subject: $email_subject\n\n$email_body" \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             
