@@ -67,7 +67,7 @@ jobs:
               # Save the current closed_pull_requests in previous_state.json
               echo "$closed_pull_requests" > previous_state.json
               
-              # Update the last update timestamp
+              # Create the last_update_timestamp.txt file and update the timestamp
               date -u +"%Y-%m-%dT%H:%M:%SZ" > last_update_timestamp.txt
             else
               echo "No updates to closed PRs."
