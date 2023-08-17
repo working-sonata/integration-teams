@@ -28,7 +28,8 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-          # Read the previous state from the file
+          touch previous_state.json
+          echo "Debug: previous_state content: $previous_state"
           previous_state=$(cat previous_state.json || echo "")
           
           # Compare the current and previous state to detect updates
