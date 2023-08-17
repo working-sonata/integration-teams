@@ -28,15 +28,20 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-          touch previous_state.json
-          echo "Debug: previous_state content: $previous_state"
-          previous_state=$(cat previous_state.json || echo "")
+          
+          # Read the previous state from the file or create an empty string if it doesn't exist
+          previous_state=$(cat previous_state.json 2>/dev/null || echo "")
+          
+          # If previous_state.json doesn't exist, set previous_state to an empty string
+          if [ -z "$previous_state" ]; then
+            previous_state=""
+          fi
           
           # Compare the current and previous state to detect updates
           if [[ "$closed_pull_requests" != "$previous_state" ]]; then
             echo "Closed PR updated. Trigger email notification."
             
-            # Extract pull request details
+            # Extract pull request details and construct pr_details
             pr_details=""
             for row in $(echo "$closed_pull_requests" | jq -r '.[] | @base64'); do
               _jq() {
@@ -51,10 +56,11 @@ jobs:
             
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
-            email_body="Closed Pull Requests were Updated. Details:\n$pr_details"
+            email_body="Closed Pull Requests were updated. Details:\n$pr_details"
             echo -e "Subject: $email_subject\n\n$email_body" \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             
+            # Save the current closed_pull_requests in previous_state.json
             echo "$closed_pull_requests" > previous_state.json
           else
             echo "No updates to closed PRs."
