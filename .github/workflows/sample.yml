@@ -31,7 +31,6 @@ jobs:
           
           # Read the last update timestamp from the file or set to a default value if it doesn't exist
           last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo "1970-01-01T00:00:00Z")
-
           echo "Closed Pull Requests: $closed_pull_requests"
           
           # Extract the PRs that were updated after the last timestamp
