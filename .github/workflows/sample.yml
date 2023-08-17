@@ -13,6 +13,9 @@ jobs:
   send_notification:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Git
+        uses: actions/checkout@v2
+        
       - name: Install required libraries for TLS support
         run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
 
@@ -25,9 +28,9 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
-          
-          # Get the previous state of closed pull requests (you need to implement this logic)
-          # For simplicity, assume we have a list called `previous_state` containing pull request details.
+
+          # Read the previous state from the file
+          previous_state=$(cat previous_state.json || echo "")
           
           # Compare the current and previous state to detect updates
           if [[ "$closed_pull_requests" != "$previous_state" ]]; then
@@ -35,10 +38,10 @@ jobs:
             
             # Extract pull request details
             pr_details=$(echo "$closed_pull_requests" | jq -r '.[] | "PR Number: \(.number), Title: \(.title)"' | tr '\n' ', ')
+            
             # Debug: Output the pr_details variable to check its content
             echo "DEBUG: pr_details=$pr_details"
-            # Output the content of the closed_pull_requests variable
-            echo "DEBUG: closed_pull_requests=$closed_pull_requests"
+            
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
             email_body="Closed Pull Requests were updated. Details: $pr_details"
@@ -46,7 +49,8 @@ jobs:
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
             
             echo "$closed_pull_requests" > previous_state.json
-            exit 0
+          else
+            echo "No updates to closed PRs."
+            exit 1
           fi
-          echo "No updates to closed PRs."
-          exit 1
+          
