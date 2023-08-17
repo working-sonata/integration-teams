@@ -29,16 +29,16 @@ jobs:
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
           
-          # Read the last update timestamp from the file or set to 0 if it doesn't exist
-          last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo 0)
+          # Read the last update timestamp from the file or set to a default value if it doesn't exist
+          last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo "1970-01-01T00:00:00Z")
           
           # Extract the PRs that were updated after the last timestamp
           updated_pull_requests=$(echo "$closed_pull_requests" | jq -r --arg last_timestamp "$last_update_timestamp" '.[] | select(.updated_at > $last_timestamp)')
-
+          
           # If there are updated PRs, construct and send the email
           if [ -n "$updated_pull_requests" ]; then
             echo "Closed PR updated. Trigger email notification."
-
+            
             pr_details=""
             while IFS= read -r pr; do
               pr_number=$(echo "$pr" | jq -r '.number')
@@ -47,13 +47,13 @@ jobs:
               pr_url=$(echo "$pr" | jq -r '.html_url')
               pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\n"
             done <<< "$updated_pull_requests"
-
+            
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
             email_body="Closed Pull Requests were updated. Details:\n$pr_details"
             echo -e "Subject: $email_subject\n\n$email_body" \
             | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
-
+            
             # Save the current timestamp as the last update timestamp
             echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > last_update_timestamp.txt
           else
