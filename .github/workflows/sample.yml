@@ -2,7 +2,7 @@ name: PR Update Notification
 
 on:
   schedule:
-     - cron: "*/15 * * * *"  # Run every 15 minutes
+    - cron: "*/15 * * * *"  # Run every 15 minutes
 
   pull_request:
     types:
@@ -29,8 +29,8 @@ jobs:
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
           
-          # Read the previous state from the file
-          previous_state=$(cat previous_state.json || echo "")
+          # Read the previous state from the file or create an empty string if it doesn't exist
+          previous_state=$(cat previous_state.json 2>/dev/null || echo "")
 
           # Compare the current and previous state to detect updates
           if [[ "$closed_pull_requests" != "$previous_state" ]]; then
@@ -61,3 +61,4 @@ jobs:
             echo "No updates to closed PRs."
             exit 1
           fi
+
