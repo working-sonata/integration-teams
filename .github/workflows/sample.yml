@@ -1,9 +1,5 @@
 name: PR Update Notification
 
-on:
-  schedule:
-    - cron: "*/15 * * * *"  # Run every 15 minutes
-
   pull_request:
     types:
       - synchronize
