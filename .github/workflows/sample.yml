@@ -29,7 +29,7 @@ jobs:
 
           # If there are updated PRs, construct and send the email
           if [ -n "$updated_pull_requests" ]; then
-            echo "Closed PR updated. Trigger email notification."
+            echo "Closed PR update. Trigger email notification."
             
             # Extract pull request details and construct pr_details
             pr_details=""
