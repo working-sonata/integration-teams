@@ -41,13 +41,14 @@ jobs:
             echo "Closed PR updated. Trigger email notification."
             
             pr_details=""
-            while IFS= read -r pr; do
+            for pr in $updated_pull_requests; do
               pr_number=$(echo "$pr" | jq -r '.number')
               pr_title=$(echo "$pr" | jq -r '.title')
               pr_author=$(echo "$pr" | jq -r '.user.login')
               pr_url=$(echo "$pr" | jq -r '.html_url')
               pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\n"
-            done <<< "$updated_pull_requests"
+            done
+
             
             # Send the email using sendemail with TLS
             email_subject="GitHub PR Update Notification"
