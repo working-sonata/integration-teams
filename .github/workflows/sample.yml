@@ -28,19 +28,24 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
+
           # Read the previous state from the file or create an empty string if it doesn't exist
           previous_state=$(cat previous_state.json 2>/dev/null || echo "")
           
           # Read the last update timestamp from the file or set to 0 if it doesn't exist
           last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo 0)
+          echo "Closed Pull Requests: $closed_pull_requests"
+
+          # Extract the PRs that were updated after the last timestamp
+          updated_pull_requests=$(echo "$closed_pull_requests" | jq -r --arg last_timestamp "$last_update_timestamp" '.[] | select(.updated_at > $last_timestamp)')
           
-          # Compare the current and previous state to detect updates
-          if [[ "$closed_pull_requests" != "$previous_state" ]]; then
+          # If there are updated PRs, construct and send the email
+          if [[ "$updated_pull_requests" != "$previous_state" ]]; then
             echo "Closed PR updated. Trigger email notification."
             
             # Extract pull request details and construct pr_details
             pr_details=""
-            for row in $(echo "$closed_pull_requests" | jq -r '.[] | @base64'); do
+            for row in $(echo "$updated_pull_requests" | jq -r '.[] | @base64'); do
               _jq() {
                 echo "${row}" | base64 --decode | jq -r "${1}"
               }
@@ -55,7 +60,7 @@ jobs:
                 pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\n"
               fi
             done
-            
+
             # Send the email using sendemail with TLS
             if [ -n "$pr_details" ]; then
               email_subject="GitHub PR Update Notification"
@@ -68,9 +73,10 @@ jobs:
               
               # Create the last_update_timestamp.txt file and update the timestamp
               date -u +"%Y-%m-%dT%H:%M:%SZ" > last_update_timestamp.txt
+              
+              # Save the current timestamp as the last update timestamp
+              echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > last_update_timestamp.txt
             else
               echo "No updates to closed PRs."
             fi
-          else
-            echo "No updates to closed PRs."
           fi
