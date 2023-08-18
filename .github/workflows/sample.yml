@@ -17,8 +17,6 @@ jobs:
       - name: Install sendemail package
         run: sudo apt-get update && sudo apt-get install -y sendemail
 
-      # ... (previous steps)
-
       - name: Check for PR updates
         id: check_updates
         run: |
@@ -51,7 +49,7 @@ jobs:
                     "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 5) { nodes { author { login }, bodyText, createdAt } } } } }"
                   }' \
                   https://api.github.com/graphql)
-                commit_comments=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[] | "\(.author.login): \(.bodyText) (\(.createdAt))"')
+                commit_comments=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[] | "\(.author.login): \(.bodyText) \((.createdAt | fromdateiso8601) | strftime("%Y-%m-%d %H:%M:%S"))"')
                 pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
               fi
             done
