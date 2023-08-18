@@ -53,6 +53,7 @@ jobs:
 
             
             # Send the email using sendemail with TLS
+            if [ -n "$pr_details" ]; then
             email_subject="GitHub PR Update Notification"
             email_body="Closed Pull Requests were updated. Details:\n$pr_details"
             echo -e "Subject: $email_subject\n\n$email_body" \
