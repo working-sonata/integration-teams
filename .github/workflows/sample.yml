@@ -53,6 +53,8 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
+                pr_msg=$(_jg '.message')
+                
                 
                 # Fetch commit messages for the updated pull request
                 commit_messages=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
