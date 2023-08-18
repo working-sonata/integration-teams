@@ -16,7 +16,7 @@ jobs:
 
       - name: Install sendemail package
         run: sudo apt-get update && sudo apt-get install -y sendemail
-        
+
       - name: Check for PR updates
         id: check_updates
         run: |
