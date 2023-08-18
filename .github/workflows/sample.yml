@@ -16,7 +16,7 @@ jobs:
 
       - name: Install sendemail package
         run: sudo apt-get update && sudo apt-get install -y sendemail
-
+        
       - name: Check for PR updates
         id: check_updates
         run: |
@@ -26,7 +26,6 @@ jobs:
           # Fetch the list of closed pull requests updated after the last timestamp
           updated_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed&sort=updated&direction=desc&since=$last_update_timestamp")
-
           # If there are updated PRs, construct and send the email
           if [ -n "$updated_pull_requests" ]; then
             echo "Closed PR update. Trigger email notification."
