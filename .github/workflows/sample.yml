@@ -28,6 +28,8 @@ jobs:
           # Fetch the list of closed pull requests
           closed_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed")
+
+          echo "$closed_pull_requests"
           
           # Read the last update timestamp from the file or set to a default value if it doesn't exist
           last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo "1970-01-01T00:00:00Z")
