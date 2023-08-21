@@ -43,26 +43,23 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
-                
-                # Fetch comments for the pull request using GraphQL API
-                query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
-                  '{
-                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 5, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
-                  }' \
-                  https://api.github.com/graphql)
+              # Fetch comments using GraphQL API
+              query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
+                '{
+                  "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 5) { nodes { author { login }, bodyText, createdAt } } } } }"
+                }' \
+                https://api.github.com/graphql)
                 
                 commit_comments=""
-                for comment in $(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[] | @base64'); do
-                  _jq_comment() {
-                    echo "${comment}" | base64 --decode | jq -r "${1}"
-                  }
-                  comment_author=$(_jq_comment '.author.login')
-                  comment_text=$(_jq_comment '.bodyText')
-                  comment_created_at=$(_jq_comment '.createdAt')
-                  commit_comments+="Author: $comment_author\nComment: $comment_text\nCreated At: $(date -d "$comment_created_at" +"%Y-%m-%d %H:%M:%S")\n\n"
+                for comment in $(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[]'); do
+                  comment_author=$(echo "$comment" | jq -r '.author.login')
+                  comment_text=$(echo "$comment" | jq -r '.bodyText')
+                  comment_created_at=$(echo "$comment" | jq -r '.createdAt')
+                  commit_comments+="Author: $comment_author\nComment: $comment_text\nCreated At: $comment_created_at\n\n"
                 done
-                
-                pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
+                if [ -n "$commit_comments" ]; then
+                  pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
+                fi
               fi
             done
             
