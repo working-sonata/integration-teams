@@ -35,20 +35,16 @@ jobs:
               }
               pr_updated_at=$(_jq '.updated_at')
               
-              # Debug print
-              echo "PR Updated At: $pr_updated_at"
-              echo "Last Update Timestamp: $last_update_timestamp"
-              
               if [[ "$pr_updated_at" > "$last_update_timestamp" ]]; then
                 pr_number=$(_jq '.number')
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
 
-                # Fetch all comments for the pull request using GraphQL API
+                # Fetch only comments created after last_update_timestamp using GraphQL API
                 query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
                   '{
-                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(first: 100) { nodes { author { login }, bodyText, createdAt } } } } }"
+                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(first: 100, orderBy: {field: CREATED_AT, direction: DESC}, after: \"'$last_update_timestamp'\") { nodes { author { login }, bodyText, createdAt } } } } }"
                   }' \
                   https://api.github.com/graphql)
 
@@ -63,7 +59,9 @@ jobs:
                   commit_comments+="Author: $comment_author\nComment: $comment_text\nCreated At: $comment_created_at\n\n"
                 done
 
-                pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
+                if [ -n "$commit_comments" ]; then
+                  pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
+                fi
               fi
             done
 
