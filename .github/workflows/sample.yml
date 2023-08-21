@@ -43,23 +43,22 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
-              # Fetch comments using GraphQL API
+              # Fetch only the latest comment using GraphQL API
               query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
                 '{
-                  "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 5) { nodes { author { login }, bodyText, createdAt } } } } }"
+                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
                 }' \
                 https://api.github.com/graphql)
 
-                echo "Query Result:"
-                echo "$query_result"
-
-                commit_comments=""
-                for comment in $(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[]'); do
-                  comment_author=$(echo "$comment" | jq -r '.author.login')
-                  comment_text=$(echo "$comment" | jq -r '.bodyText')
-                  comment_created_at=$(echo "$comment" | jq -r '.createdAt')
-                  commit_comments+="Author: $comment_author\nComment: $comment_text\nCreated At: $comment_created_at\n\n"
-                done
+              # Extract and handle the comment nodes
+              comment_nodes=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes')
+              if [ "$comment_nodes" != "null" ]; then
+                latest_comment_author=$(echo "$comment_nodes" | jq -r '.[0].author.login')
+                latest_comment_text=$(echo "$comment_nodes" | jq -r '.[0].bodyText')
+                latest_comment_created_at=$(echo "$comment_nodes" | jq -r '.[0].createdAt')
+                commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $(date -d "$latest_comment_created_at" +"%Y-%m-%d %H:%M:%S")\n"
+                pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
+              fi
                 if [ -n "$commit_comments" ]; then
                   pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
                 fi
