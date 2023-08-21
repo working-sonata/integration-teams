@@ -34,6 +34,11 @@ jobs:
                 echo "${row}" | base64 --decode | jq -r "${1}"
               }
               pr_updated_at=$(_jq '.updated_at')
+              
+              # Debug print
+              echo "PR Updated At: $pr_updated_at"
+              echo "Last Update Timestamp: $last_update_timestamp"
+              
               if [[ "$pr_updated_at" > "$last_update_timestamp" ]]; then
                 pr_number=$(_jq '.number')
                 pr_title=$(_jq '.title')
