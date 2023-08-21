@@ -49,7 +49,10 @@ jobs:
                   "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 5) { nodes { author { login }, bodyText, createdAt } } } } }"
                 }' \
                 https://api.github.com/graphql)
-                
+
+                echo "Query Result:"
+                echo "$query_result"
+
                 commit_comments=""
                 for comment in $(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[]'); do
                   comment_author=$(echo "$comment" | jq -r '.author.login')
