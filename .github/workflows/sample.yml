@@ -50,11 +50,10 @@ jobs:
                 }' \
                 https://api.github.com/graphql)
 
-                latest_comment_author=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[0].author.login')
-                latest_comment_text=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[0].bodyText')
                 latest_comment_created_at=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[0].createdAt')
-
-                commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $(date -d "$latest_comment_created_at" +"%Y-%m-%d %H:%M:%S")\n"
+                # Format the timestamp using 'date -u' command
+                latest_comment_formatted_date=$(date -u -d "$latest_comment_created_at" +"%Y-%m-%d %H:%M:%S")
+                commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $latest_comment_formatted_date\n"
 
                 pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
               fi
