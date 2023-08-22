@@ -43,10 +43,10 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
-                # Fetch only the latest comment using GraphQL API
+                # Fetch all comments using GraphQL API
                 query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
                   '{
-                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
+                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 100, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
                   }' \
                   https://api.github.com/graphql)
                 # Extract and handle the comment nodes
@@ -57,12 +57,12 @@ jobs:
                     _jq_comment() {
                       echo "${row_comment}" | base64 --decode | jq -r "${1}"
                     }
-                    latest_comment_author=$(_jq_comment '.author.login')
-                    latest_comment_text=$(_jq_comment '.bodyText')
-                    latest_comment_created_at=$(_jq_comment '.createdAt')
-                    commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $latest_comment_created_at\n"
+                    comment_author=$(_jq_comment '.author.login')
+                    comment_text=$(_jq_comment '.bodyText')
+                    comment_created_at=$(_jq_comment '.createdAt')
+                    commit_comments+="Comment Changed By: $comment_author\nComment: $comment_text\nCreated At: $comment_created_at\n\n"
                   done
-                  pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
+                  pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\nComments:\n$commit_comments\n\n"
                 fi
               fi
             done
