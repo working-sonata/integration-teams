@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Set up Git
         uses: actions/checkout@v2
-
+        
       - name: Install required libraries for TLS support
         run: sudo apt-get update && sudo apt-get install -y libnet-ssleay-perl libio-socket-ssl-perl
 
@@ -44,10 +44,11 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
+
                 # Fetch only the latest comment using GraphQL API
-                query_result=$(curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
+                query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
                   '{
-                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
+                      "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
                   }' \
                   https://api.github.com/graphql)
 
@@ -61,7 +62,6 @@ jobs:
                 else
                   commit_comments="No comments"
                 fi
-
                 pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
               fi
             done
@@ -72,6 +72,8 @@ jobs:
               email_body="Closed Pull Requests were updated. Details:\n$pr_details"
               echo -e "Subject: $email_subject\n\n$email_body" \
               | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
+              # Save the current closed_pull_requests in previous_state.json
+              echo "$updated_pull_requests" > previous_state.json
               # Create the last_update_timestamp.txt file and update the timestamp
               date -u +"%Y-%m-%dT%H:%M:%SZ" > last_update_timestamp.txt
             else
