@@ -54,7 +54,7 @@ jobs:
                   latest_comment_author=$(echo "$comment_nodes" | jq -r '.[0].author.login')
                   latest_comment_text=$(echo "$comment_nodes" | jq -r '.[0].bodyText')
                   latest_comment_created_at=$(echo "$comment_nodes" | jq -r '.[0].createdAt')
-                  commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $latest_comment_created_at\n"
+                  commit_comments="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $latest_comment_created_at"
                 else
                   commit_comments="No comments"
                 fi
