@@ -21,7 +21,7 @@ jobs:
         id: check_updates
         run: |
           # Read the last update timestamp from the file or set to 0 if it doesn't exist
-          last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo 0)
+          last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo "1970-01-01T00:00:00Z")  # Set an initial value if file is missing
           
           # Fetch the list of closed pull requests updated after the last timestamp
           updated_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
@@ -43,13 +43,16 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
-                # Fetch and include pull request comments using GraphQL API
-                query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
-                  '{
-                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 5) { nodes { author { login }, bodyText, createdAt } } } } }"
-                  }' \
-                  https://api.github.com/graphql)
-                commit_comments=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[] | "\(.author.login): \(.bodyText) \((.createdAt | fromdateiso8601) | strftime("%Y-%m-%d %H:%M:%S"))"')
+              # Fetch only the latest comment using GraphQL API
+              query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
+                '{
+                  "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
+                }' \
+                https://api.github.com/graphql)
+                latest_comment_author=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[0].author.login')
+                latest_comment_text=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[0].bodyText')
+                latest_comment_created_at=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes[0].createdAt')
+                commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $latest_comment_created_at\n"
                 pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
               fi
             done
