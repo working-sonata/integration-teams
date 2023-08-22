@@ -21,16 +21,15 @@ jobs:
         id: check_updates
         run: |
           # Read the last update timestamp from the file or set to 0 if it doesn't exist
-          last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo 0)
-
+          last_update_timestamp=$(cat last_update_timestamp.txt 2>/dev/null || echo "1970-01-01T00:00:00Z")  # Set an initial value if file is missing
+          
           # Fetch the list of closed pull requests updated after the last timestamp
           updated_pull_requests=$(curl -s -H "Authorization: Bearer ${{ secrets.PR_TOKEN }}" \
                                 "https://api.github.com/repos/working-sonata/integration-teams/pulls?state=closed&sort=updated&direction=desc&since=$last_update_timestamp")
-
           # If there are updated PRs, construct and send the email
           if [ -n "$updated_pull_requests" ]; then
             echo "Closed PR update. Trigger email notification."
-
+            
             # Extract pull request details and construct pr_details
             pr_details=""
             for row in $(echo "$updated_pull_requests" | jq -r '.[] | @base64'); do
@@ -44,28 +43,25 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
-
-                # Fetch only the latest comment using GraphQL API
-                query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
-                  '{
-                      "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
-                  }' \
-                  https://api.github.com/graphql)
-
-                # Extract and handle the comment nodes
+              # Fetch only the latest comment using GraphQL API
+              query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
+                '{
+                  "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 1, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
+                }' \
+                https://api.github.com/graphql)
                 comment_nodes=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes')
                 if [ "$comment_nodes" != "null" ]; then
                   latest_comment_author=$(echo "$comment_nodes" | jq -r '.[0].author.login')
                   latest_comment_text=$(echo "$comment_nodes" | jq -r '.[0].bodyText')
                   latest_comment_created_at=$(echo "$comment_nodes" | jq -r '.[0].createdAt')
-                  commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $(date -d "$latest_comment_created_at" +"%Y-%m-%d %H:%M:%S")\n"
+                  commit_comments+="Author: $latest_comment_author\nComment: $latest_comment_text\nCreated At: $latest_comment_created_at\n"
                 else
                   commit_comments="No comments"
                 fi
                 pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\nCommit Comments:\n$commit_comments\n\n"
               fi
             done
-
+            
             # Send the email using sendemail with TLS
             if [ -n "$pr_details" ]; then
               email_subject="GitHub PR Update Notification"
@@ -73,7 +69,7 @@ jobs:
               echo -e "Subject: $email_subject\n\n$email_body" \
               | sendemail -f c.bhavya@sonata-software.com -t c.bhavya@sonata-software.com -s outlook.office365.com -o tls=yes -xu c.bhavya@sonata-software.com -xp Varshu@456 -m
               # Save the current closed_pull_requests in previous_state.json
-              echo "$updated_pull_requests" > previous_state.json
+              echo "$closed_pull_requests" > previous_state.json
               # Create the last_update_timestamp.txt file and update the timestamp
               date -u +"%Y-%m-%dT%H:%M:%SZ" > last_update_timestamp.txt
             else
