@@ -43,26 +43,14 @@ jobs:
                 pr_title=$(_jq '.title')
                 pr_author=$(_jq '.user.login')
                 pr_url=$(_jq '.html_url')
-                # Fetch all comments using GraphQL API
-                query_result=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d \
-                  '{
-                    "query": "query { repository(owner:\"working-sonata\", name:\"integration-teams\"){ pullRequest(number:'$pr_number') { comments(last: 100, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { author { login }, bodyText, createdAt } } } } }"
-                  }' \
-                  https://api.github.com/graphql)
-                # Extract and handle the comment nodes
-                comment_nodes=$(echo "$query_result" | jq -r '.data.repository.pullRequest.comments.nodes')
-                if [ "$comment_nodes" != "null" ]; then
-                  commit_comments=""
-                  for row_comment in $(echo "$comment_nodes" | jq -r '.[] | @base64'); do
-                    _jq_comment() {
-                      echo "${row_comment}" | base64 --decode | jq -r "${1}"
-                    }
-                    comment_author=$(_jq_comment '.author.login')
-                    comment_text=$(_jq_comment '.bodyText')
-                    comment_created_at=$(_jq_comment '.createdAt')
-                    commit_comments+="Comment Changed By: $comment_author\nComment: $comment_text\nCreated At: $comment_created_at\n\n"
-                  done
-                  pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\nComments:\n$commit_comments\n\n"
+                
+                # Fetch all comments for the pull request
+                comments_response=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                                    "https://api.github.com/repos/working-sonata/integration-teams/pulls/$pr_number/comments")
+                comments=$(echo "$comments_response" | jq -r '.[] | select(.created_at > "'"$last_update_timestamp"'") | "- Comment Changed By: \(.user.login)\n  Comment: \(.body)\n  Created At: \(.created_at)\n\n"')
+                
+                if [ -n "$comments" ]; then
+                  pr_details+="PR Number: $pr_number\nTitle: $pr_title\nAuthor: $pr_author\nURL: $pr_url\n\nComments:\n$comments\n\n"
                 fi
               fi
             done
