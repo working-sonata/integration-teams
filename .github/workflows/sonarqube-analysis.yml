@@ -33,4 +33,5 @@ jobs:
         env:
           JAVA_HOME: /opt/hostedtoolcache/Java_Adopt_jdk/11.0.20-8/x64
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN
+        run: |
+          sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN -X
