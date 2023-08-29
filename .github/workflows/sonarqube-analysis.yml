@@ -13,6 +13,11 @@ jobs:
   sonarqube:
     runs-on: ubuntu-latest
 
+    env:
+      JAVA_HOME: /opt/hostedtoolcache/Java_Adopt_jdk/11.0.20-8/x64
+      PATH: ${{ runner.workspace }}/sonar-scanner/bin:$JAVA_HOME/bin:$PATH
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -29,13 +34,6 @@ jobs:
           unzip sonar-scanner.zip
           mv sonar-scanner-4.6.2.2472-linux sonar-scanner
           chmod +x sonar-scanner/bin/sonar-scanner
-          echo "PATH=$PATH:$HOME/sonar-scanner/bin" >> $GITHUB_ENV
-
-      - name: Print PATH
-        run: echo $PATH
 
       - name: Run SonarQube Scanner
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner -Dsonar.login=$SONAR_TOKEN
+        run: sonar-scanner -Dsonar.login=$SONAR_TOKEN
