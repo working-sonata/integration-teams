@@ -31,6 +31,9 @@ jobs:
           chmod +x sonar-scanner/bin/sonar-scanner
           export PATH=$PATH:$PWD/sonar-scanner/bin
 
+      - name: Print PATH
+        run: echo $PATH
+
       - name: Run SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
