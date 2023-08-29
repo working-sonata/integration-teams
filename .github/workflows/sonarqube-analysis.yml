@@ -29,7 +29,7 @@ jobs:
           unzip sonar-scanner.zip
           mv sonar-scanner-4.6.2.2472-linux sonar-scanner
           chmod +x sonar-scanner/bin/sonar-scanner
-          export PATH=$PATH:$PWD/sonar-scanner/bin
+          echo "PATH=$PATH:$HOME/sonar-scanner/bin" >> $GITHUB_ENV
 
       - name: Print PATH
         run: echo $PATH
